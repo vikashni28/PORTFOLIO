@@ -1,0 +1,2326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIKASHNI M — AI Security Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-base: #080c0f;
+  --bg-panel: #0c1117;
+  --bg-card: #0f1520;
+  --bg-card-hover: #131d2a;
+  --teal: #00e5cc;
+  --teal-dim: #00b8a4;
+  --teal-glow: rgba(0,229,204,0.12);
+  --teal-border: rgba(0,229,204,0.2);
+  --red: #ff3b5c;
+  --red-dim: #cc2f49;
+  --red-glow: rgba(255,59,92,0.1);
+  --gold: #f0b429;
+  --text-primary: #e8edf2;
+  --text-secondary: #8a9bb0;
+  --text-muted: #4a5568;
+  --border: rgba(255,255,255,0.06);
+  --border-active: rgba(0,229,204,0.3);
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Syne', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--teal-dim); border-radius: 2px; }
+
+/* ====== CANVAS BG ====== */
+#neural-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+}
+
+/* ====== NAV ====== */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0 40px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(8,12,15,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--teal);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-logo::before {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--teal);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--teal);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
+  border-radius: 3px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.nav-links a:hover {
+  color: var(--teal);
+  background: var(--teal-glow);
+}
+
+.nav-status {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+  animation: pulse-dot 1.5s infinite;
+}
+
+/* ====== SECTIONS ====== */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 100px 0;
+}
+
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ====== SECTION HEADER ====== */
+.section-header {
+  margin-bottom: 56px;
+}
+
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.section-tag::before {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: var(--teal);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+/* ====== HERO ====== */
+#home {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 60px;
+  align-items: center;
+  width: 100%;
+}
+
+.hero-meta {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-meta::before {
+  content: 'SYS_ID::VM-2024';
+  color: var(--teal);
+  font-size: 10px;
+}
+
+.hero-name {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 6vw, 80px);
+  font-weight: 800;
+  line-height: 0.95;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.hero-name span {
+  color: var(--teal);
+}
+
+.hero-role {
+  font-size: 13px;
+  color: var(--teal);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-role-sep {
+  width: 4px; height: 4px;
+  background: var(--text-muted);
+  border-radius: 50%;
+}
+
+.hero-intro {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 540px;
+  margin-bottom: 40px;
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: var(--teal);
+  color: var(--bg-base);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 3px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #00ffea;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,229,204,0.3);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 3px;
+  border: 1px solid var(--border-active);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--teal-glow);
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover {
+  color: var(--text-secondary);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.hero-links {
+  display: flex;
+  gap: 8px;
+}
+
+/* HERO AVATAR PANEL */
+.hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar-frame {
+  position: relative;
+  width: 340px;
+  height: 420px;
+}
+
+.avatar-svg-wrap {
+  width: 100%;
+  height: 100%;
+}
+
+/* SCAN LINE ANIMATION */
+@keyframes scan {
+  0% { top: 0; opacity: 1; }
+  95% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes float-node {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes rotate-ring {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotate-ring-rev {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes fade-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* SCAN EFFECT OVERLAY ON AVATAR */
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--teal), transparent);
+  animation: scan 3s linear infinite;
+  opacity: 0.5;
+}
+
+/* FLOATING METRICS */
+.hero-metric {
+  position: absolute;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--teal);
+  background: rgba(0,229,204,0.06);
+  border: 1px solid var(--teal-border);
+  padding: 6px 12px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.hero-metric.m1 { top: 40px; right: -30px; animation: float-node 3s ease-in-out infinite; }
+.hero-metric.m2 { bottom: 80px; right: -40px; animation: float-node 4s ease-in-out infinite 0.5s; color: var(--gold); border-color: rgba(240,180,41,0.3); background: rgba(240,180,41,0.05); }
+.hero-metric.m3 { bottom: 20px; left: -20px; animation: float-node 3.5s ease-in-out infinite 1s; color: var(--red); border-color: rgba(255,59,92,0.3); background: rgba(255,59,92,0.05); }
+
+/* ====== TERMINAL BLOCK ====== */
+.terminal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
+}
+
+.t-dot { width: 8px; height: 8px; border-radius: 50%; }
+.t-dot.r { background: #ff5f57; }
+.t-dot.y { background: #febc2e; }
+.t-dot.g { background: #28c840; }
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.terminal-body {
+  padding: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 2;
+}
+
+.terminal-body .prompt { color: var(--teal); }
+.terminal-body .cmd { color: var(--text-primary); }
+.terminal-body .out { color: var(--text-muted); }
+.terminal-body .ok { color: var(--teal); }
+.terminal-body .warn { color: var(--gold); }
+.terminal-body .err { color: var(--red); }
+
+.cursor-blink {
+  display: inline-block;
+  width: 8px;
+  height: 13px;
+  background: var(--teal);
+  vertical-align: middle;
+  animation: fade-blink 1s infinite;
+}
+
+/* ====== ABOUT ====== */
+#about {
+  background: linear-gradient(180deg, transparent, rgba(0,229,204,0.015) 50%, transparent);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.about-text p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.9;
+  margin-bottom: 20px;
+  font-family: var(--font-display);
+}
+
+.about-text p:last-child { margin-bottom: 0; }
+
+.highlight { color: var(--teal); }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.info-item {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  border-radius: 4px;
+}
+
+.info-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.info-value {
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+/* STATUS BARS */
+.status-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+}
+
+.status-title {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-title::before {
+  content: '';
+  width: 16px; height: 1px;
+  background: var(--text-muted);
+}
+
+.skill-bar-row {
+  margin-bottom: 18px;
+}
+
+.skill-bar-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.skill-bar-label { font-size: 11px; color: var(--text-secondary); }
+.skill-bar-pct { font-size: 11px; color: var(--teal); }
+
+.skill-bar-track {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.skill-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal-dim), var(--teal));
+  border-radius: 2px;
+  width: 0%;
+  transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.skill-bar-fill.alt { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.skill-bar-fill.warn { background: linear-gradient(90deg, #d97706, var(--gold)); }
+.skill-bar-fill.danger { background: linear-gradient(90deg, var(--red-dim), var(--red)); }
+
+/* ====== SKILLS ====== */
+.skills-clusters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.skill-cluster {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.skill-cluster::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--teal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+
+.skill-cluster:hover::before { transform: scaleX(1); }
+.skill-cluster:hover {
+  border-color: var(--teal-border);
+  background: var(--bg-card-hover);
+}
+
+.cluster-icon {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.cluster-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cluster-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.tag.teal { color: var(--teal); border-color: var(--teal-border); background: var(--teal-glow); }
+.tag.red { color: var(--red); border-color: rgba(255,59,92,0.25); background: rgba(255,59,92,0.06); }
+.tag.gold { color: var(--gold); border-color: rgba(240,180,41,0.25); background: rgba(240,180,41,0.05); }
+.tag.purple { color: #a78bfa; border-color: rgba(167,139,250,0.25); background: rgba(167,139,250,0.05); }
+
+/* ====== PROJECTS ====== */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.project-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.project-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, var(--teal-glow), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.project-card:hover::after { opacity: 1; }
+.project-card:hover {
+  border-color: var(--teal-border);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.project-case-id {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.case-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.case-badge.ml { background: rgba(0,229,204,0.15); color: var(--teal); }
+.case-badge.sec { background: rgba(255,59,92,0.15); color: var(--red); }
+.case-badge.rl { background: rgba(167,139,250,0.15); color: #a78bfa; }
+
+.project-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.project-subtitle {
+  font-size: 11px;
+  color: var(--teal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.project-section {
+  margin-bottom: 14px;
+}
+
+.project-section-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.project-section-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.project-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--teal);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  margin-top: 14px;
+  transition: gap 0.2s;
+}
+
+.project-link:hover { gap: 8px; }
+
+/* ====== EXPERIENCE ====== */
+.timeline {
+  position: relative;
+  padding-left: 32px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--teal), transparent);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 44px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -37px; top: 6px;
+  width: 10px; height: 10px;
+  background: var(--bg-base);
+  border: 2px solid var(--teal);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0,229,204,0.4);
+}
+
+.timeline-date {
+  font-size: 10px;
+  color: var(--teal);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.timeline-company {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.timeline-role {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-location {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 3px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.timeline-bullets {
+  list-style: none;
+}
+
+.timeline-bullets li {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 5px 0;
+  padding-left: 18px;
+  position: relative;
+  line-height: 1.7;
+}
+
+.timeline-bullets li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--teal);
+  font-size: 10px;
+}
+
+/* ====== RESUME ====== */
+#resume {
+  background: linear-gradient(180deg, transparent, rgba(255,59,92,0.015) 50%, transparent);
+}
+
+.resume-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.resume-summary {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+  border-radius: 0 6px 6px 0;
+  padding: 28px;
+}
+
+.resume-summary-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.resume-summary p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  font-family: var(--font-display);
+}
+
+.edu-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 28px;
+}
+
+.edu-degree {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.edu-institution {
+  font-size: 13px;
+  color: var(--teal);
+  margin-bottom: 8px;
+}
+
+.edu-period {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.resume-download-section {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: var(--bg-panel);
+  border: 1px solid var(--teal-border);
+  border-radius: 6px;
+}
+
+.download-text { flex: 1; }
+.download-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.download-sub { font-size: 11px; color: var(--text-muted); }
+
+/* ====== ACHIEVEMENTS ====== */
+.ach-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.ach-tab {
+  padding: 10px 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.2s;
+}
+
+.ach-tab.active {
+  color: var(--teal);
+  border-bottom-color: var(--teal);
+}
+
+.ach-tab:hover:not(.active) {
+  color: var(--text-secondary);
+}
+
+.ach-panel { display: none; }
+.ach-panel.active { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+.ach-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 22px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: all 0.2s;
+}
+
+.ach-card:hover {
+  border-color: var(--teal-border);
+  background: var(--bg-card-hover);
+}
+
+.ach-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ach-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 4px;
+}
+
+.ach-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.ach-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.ach-badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 9px;
+  padding: 3px 8px;
+  background: var(--teal-glow);
+  border: 1px solid var(--teal-border);
+  border-radius: 2px;
+  color: var(--teal);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ====== CONTACT ====== */
+#contact {
+  background: linear-gradient(180deg, transparent, rgba(0,229,204,0.02));
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.contact-intro {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  font-family: var(--font-display);
+  margin-bottom: 32px;
+}
+
+.contact-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.contact-item:hover {
+  border-color: var(--teal-border);
+  background: var(--bg-card-hover);
+  transform: translateX(4px);
+}
+
+.contact-item-icon {
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--teal-glow);
+  border: 1px solid var(--teal-border);
+  border-radius: 4px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.contact-item-info { flex: 1; }
+.contact-item-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+.contact-item-value { font-size: 13px; color: var(--text-primary); }
+
+.contact-map {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 28px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-header {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-placeholder {
+  flex: 1;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-dot {
+  width: 12px; height: 12px;
+  background: var(--red);
+  border-radius: 50%;
+  box-shadow: 0 0 16px var(--red);
+  position: relative;
+}
+
+.map-dot::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 1px solid var(--red);
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite;
+}
+
+@keyframes ping {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+.map-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+}
+
+.map-coords {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+/* ====== TICKER ====== */
+.ticker-wrap {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  height: 32px;
+  background: rgba(8,12,15,0.9);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.ticker-inner {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker-scroll 40s linear infinite;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-text {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.15em;
+  padding: 0 40px;
+}
+
+.ticker-text span { color: var(--teal); }
+
+/* ====== FOOTER ====== */
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px 40px 60px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.footer-text span { color: var(--teal); }
+
+/* ====== DIVIDERS ====== */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 0;
+}
+
+/* ====== ANIMATIONS ====== */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ====== MOBILE NAV TOGGLE ====== */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 3px;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 900px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; flex-direction: column; position: absolute; top: 60px; left: 0; right: 0; background: var(--bg-base); border-bottom: 1px solid var(--border); padding: 16px; gap: 4px; z-index: 200; }
+  .nav-links.open { display: flex; }
+  .nav-links li { width: 100%; }
+  .nav-links a { display: block; padding: 10px 16px; }
+  .nav-toggle { display: block; }
+  .nav-status { display: none; }
+
+  .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+  .hero-visual { display: none; }
+  .hero-name { font-size: 48px; }
+  section { padding: 70px 0; }
+  .container { padding: 0 20px; }
+
+  .about-grid { grid-template-columns: 1fr; }
+  .skills-clusters { grid-template-columns: 1fr 1fr; }
+  .projects-grid { grid-template-columns: 1fr; }
+  .resume-content { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .ach-panel.active { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .hero-name { font-size: 38px; }
+  .skills-clusters { grid-template-columns: 1fr; }
+  .section-title { font-size: 28px; }
+  .info-grid { grid-template-columns: 1fr; }
+  .hero-ctas { flex-direction: column; }
+  .hero-links { flex-direction: column; }
+}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="neural-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">VIKASHNI_M // AI_LAB</div>
+  <ul class="nav-links" id="nav-menu">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#resume">Resume</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#achievements">Achievements</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-status">
+    <div class="status-dot"></div>
+    SYSTEM ONLINE
+  </div>
+  <button class="nav-toggle" onclick="document.getElementById('nav-menu').classList.toggle('open')">☰</button>
+</nav>
+
+<!-- HERO -->
+<section id="home">
+  <div class="container">
+    <div class="hero-grid">
+      <!-- LEFT: Identity -->
+      <div class="hero-left">
+        <div class="hero-meta">IDENTITY_MODULE :: CLEARANCE LEVEL — ACTIVE</div>
+        <h1 class="hero-name">VIKASHNI<br><span>M</span></h1>
+        <div class="hero-role">
+          AI/ML Developer
+          <div class="hero-role-sep"></div>
+          Cybersecurity Enthusiast
+          <div class="hero-role-sep"></div>
+          AI & DS Student
+        </div>
+        <p class="hero-intro">
+          Building production-grade AI systems at the intersection of machine learning, cybersecurity, and intelligent automation. Currently pursuing B.Tech in AI &amp; Data Science — engineering secure, intelligent systems that push the boundary of what code can do.
+        </p>
+        <div class="hero-ctas">
+          <a href="#projects" class="btn-primary">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            View Projects
+          </a>
+          <a href="#contact" class="btn-secondary">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M1 4L6 7L11 4" stroke="currentColor" stroke-width="1.2"/></svg>
+            Get in Touch
+          </a>
+        </div>
+        <div class="hero-links">
+          <a href="https://github.com/vikashni28" target="_blank" class="btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="https://www.linkedin.com/in/vikashni-m-695a0a295/" target="_blank" class="btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+          <a href="mailto:vikashnimanoj@gmail.com" class="btn-ghost">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 6 10-6"/></svg>
+            Email
+          </a>
+        </div>
+      </div>
+
+      <!-- RIGHT: Visual Panel -->
+      <div class="hero-visual">
+        <div class="avatar-frame">
+          <!-- Holographic AI analyst SVG -->
+          <svg class="avatar-svg-wrap" viewBox="0 0 340 420" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="bgGlow" cx="50%" cy="50%" r="60%">
+                <stop offset="0%" stop-color="#00e5cc" stop-opacity="0.06"/>
+                <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="figureGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00e5cc" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="#0055aa" stop-opacity="0.4"/>
+              </linearGradient>
+              <linearGradient id="scanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#00e5cc" stop-opacity="0"/>
+                <stop offset="50%" stop-color="#00e5cc" stop-opacity="0.6"/>
+                <stop offset="100%" stop-color="#00e5cc" stop-opacity="0"/>
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="softglow">
+                <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <clipPath id="panelClip">
+                <rect x="20" y="20" width="300" height="380" rx="8"/>
+              </clipPath>
+            </defs>
+
+            <!-- Panel background -->
+            <rect x="20" y="20" width="300" height="380" rx="8" fill="#0a0f18" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.3"/>
+            <rect x="20" y="20" width="300" height="380" rx="8" fill="url(#bgGlow)"/>
+
+            <!-- Grid lines -->
+            <g opacity="0.07" stroke="#00e5cc" stroke-width="0.5">
+              <line x1="20" y1="80" x2="320" y2="80"/>
+              <line x1="20" y1="140" x2="320" y2="140"/>
+              <line x1="20" y1="200" x2="320" y2="200"/>
+              <line x1="20" y1="260" x2="320" y2="260"/>
+              <line x1="20" y1="320" x2="320" y2="320"/>
+              <line x1="80" y1="20" x2="80" y2="400"/>
+              <line x1="140" y1="20" x2="140" y2="400"/>
+              <line x1="200" y1="20" x2="200" y2="400"/>
+              <line x1="260" y1="20" x2="260" y2="400"/>
+            </g>
+
+            <!-- Corner accents -->
+            <path d="M20 50 L20 20 L50 20" stroke="#00e5cc" stroke-width="1.5" fill="none" opacity="0.8"/>
+            <path d="M290 20 L320 20 L320 50" stroke="#00e5cc" stroke-width="1.5" fill="none" opacity="0.8"/>
+            <path d="M20 370 L20 400 L50 400" stroke="#00e5cc" stroke-width="1.5" fill="none" opacity="0.8"/>
+            <path d="M290 400 L320 400 L320 370" stroke="#00e5cc" stroke-width="1.5" fill="none" opacity="0.8"/>
+
+            <!-- Header bar -->
+            <rect x="20" y="20" width="300" height="32" rx="8" fill="#0d1622" opacity="0.9"/>
+            <circle cx="36" cy="36" r="5" fill="#ff5f57"/>
+            <circle cx="52" cy="36" r="5" fill="#febc2e"/>
+            <circle cx="68" cy="36" r="5" fill="#28c840"/>
+            <text x="170" y="40" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#4a5568" letter-spacing="2">IDENTITY :: SCAN</text>
+
+            <!-- Rotating outer ring -->
+            <g transform="translate(170,230)" style="animation: rotate-ring 8s linear infinite; transform-origin: 0 0; transform-box: fill-box;">
+              <circle cx="0" cy="0" r="95" fill="none" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.2" stroke-dasharray="4 8"/>
+            </g>
+
+            <!-- Rotating inner ring -->
+            <g transform="translate(170,230)" style="animation: rotate-ring-rev 5s linear infinite; transform-origin: 0 0; transform-box: fill-box;">
+              <circle cx="0" cy="0" r="78" fill="none" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.15" stroke-dasharray="2 6"/>
+            </g>
+
+            <!-- Silhouette figure - cyber analyst style -->
+            <!-- Body base -->
+            <g filter="url(#softglow)" opacity="0.7">
+              <!-- Head -->
+              <ellipse cx="170" cy="148" rx="32" ry="36" fill="url(#figureGrad)" opacity="0.9"/>
+              <!-- Head highlight -->
+              <ellipse cx="162" cy="140" rx="12" ry="14" fill="#00e5cc" opacity="0.15"/>
+              <!-- Neck -->
+              <rect x="162" y="180" width="16" height="16" fill="url(#figureGrad)" opacity="0.8"/>
+              <!-- Shoulders / torso -->
+              <path d="M100 196 Q130 185 170 188 Q210 185 240 196 L250 310 L90 310 Z" fill="#0a1628" stroke="#00e5cc" stroke-width="0.8" stroke-opacity="0.5"/>
+              <!-- Chest panel glow -->
+              <rect x="145" y="215" width="50" height="35" rx="3" fill="none" stroke="#00e5cc" stroke-width="0.8" stroke-opacity="0.5"/>
+              <!-- Chest panel lines -->
+              <line x1="152" y1="223" x2="188" y2="223" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.6"/>
+              <line x1="152" y1="230" x2="188" y2="230" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.4"/>
+              <line x1="152" y1="237" x2="175" y2="237" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.3"/>
+              <!-- Shoulder pads -->
+              <path d="M100 196 Q118 192 130 200 L125 240 L95 240 Z" fill="#0d1f35" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.4"/>
+              <path d="M240 196 Q222 192 210 200 L215 240 L245 240 Z" fill="#0d1f35" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.4"/>
+            </g>
+
+            <!-- Face detail lines -->
+            <g opacity="0.5">
+              <line x1="155" y1="145" x2="165" y2="145" stroke="#00e5cc" stroke-width="0.8"/>
+              <line x1="175" y1="145" x2="185" y2="145" stroke="#00e5cc" stroke-width="0.8"/>
+              <ellipse cx="159" cy="152" rx="3" ry="2" fill="#00e5cc" opacity="0.6"/>
+              <ellipse cx="181" cy="152" rx="3" ry="2" fill="#00e5cc" opacity="0.6"/>
+              <path d="M163 161 Q170 166 177 161" stroke="#00e5cc" stroke-width="0.8" fill="none"/>
+            </g>
+
+            <!-- Floating data nodes around figure -->
+            <g style="animation: float-node 3s ease-in-out infinite; transform-origin: center; transform-box: fill-box;">
+              <circle cx="90" cy="160" r="4" fill="#00e5cc" opacity="0.6" filter="url(#glow)"/>
+              <line x1="90" y1="160" x2="138" y2="160" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.3" stroke-dasharray="3 4"/>
+            </g>
+            <g style="animation: float-node 4s ease-in-out infinite 1s; transform-origin: center; transform-box: fill-box;">
+              <circle cx="250" cy="170" r="4" fill="#f000ff" opacity="0.5" filter="url(#glow)"/>
+              <line x1="250" y1="170" x2="202" y2="162" stroke="#f000ff" stroke-width="0.5" stroke-opacity="0.3" stroke-dasharray="3 4"/>
+            </g>
+            <g style="animation: float-node 3.5s ease-in-out infinite 0.5s; transform-origin: center; transform-box: fill-box;">
+              <circle cx="100" cy="280" r="3" fill="#ffd700" opacity="0.5" filter="url(#glow)"/>
+              <line x1="100" y1="280" x2="125" y2="270" stroke="#ffd700" stroke-width="0.5" stroke-opacity="0.3" stroke-dasharray="3 4"/>
+            </g>
+
+            <!-- Scan line animation -->
+            <rect x="20" y="52" width="300" height="40" fill="url(#scanGrad)" opacity="0.5" clip-path="url(#panelClip)">
+              <animate attributeName="y" from="20" to="400" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0;0.5;0.5;0" keyTimes="0;0.1;0.9;1" dur="3s" repeatCount="indefinite"/>
+            </rect>
+
+            <!-- Bottom status bar -->
+            <rect x="30" y="360" width="280" height="28" rx="3" fill="#0a1525" stroke="#00e5cc" stroke-width="0.4" stroke-opacity="0.3"/>
+            <!-- Status dots -->
+            <circle cx="46" cy="374" r="4" fill="#00e5cc" opacity="0.8">
+              <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <text x="55" y="378" font-family="JetBrains Mono,monospace" font-size="8" fill="#4a5568" letter-spacing="1">AI_STATUS :: ACTIVE</text>
+            <text x="264" y="378" font-family="JetBrains Mono,monospace" font-size="8" fill="#00e5cc" letter-spacing="1" opacity="0.8">● OK</text>
+
+            <!-- Hex pattern bottom -->
+            <g opacity="0.04" fill="#00e5cc">
+              <polygon points="170,320 183,328 183,344 170,352 157,344 157,328"/>
+              <polygon points="195,320 208,328 208,344 195,352 182,344 182,328"/>
+              <polygon points="145,320 158,328 158,344 145,352 132,344 132,328"/>
+            </g>
+          </svg>
+
+          <!-- Floating metrics -->
+          <div class="hero-metric m1">ML_PIPELINE :: ACTIVE</div>
+          <div class="hero-metric m2">YARA_RULES :: LOADED</div>
+          <div class="hero-metric m3">THREAT_LEVEL :: ANALYST</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-tag">Identity Module</div>
+      <h2 class="section-title">About Me</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text fade-in">
+        <p>
+          I'm <span class="highlight">Vikashni M</span>, an AI & Data Science student at Kathir College of Engineering, Coimbatore, building at the intersection of machine learning, cybersecurity, and intelligent systems. I don't just study AI — I build with it.
+        </p>
+        <p>
+          From engineering <span class="highlight">Reinforcement Learning environments</span> for LLM evaluation to building a <span class="highlight">hybrid static malware analyzer</span> combining YARA rules with ML classification — my work bridges the gap between research and real-world system security.
+        </p>
+        <p>
+          I thrive in environments where code meets threat intelligence, where models meet production pipelines, and where innovation is measured by impact. Currently seeking internship and collaboration opportunities in AI/ML and cybersecurity.
+        </p>
+
+        <div class="info-grid" style="margin-top: 32px;">
+          <div class="info-item">
+            <div class="info-label">Location</div>
+            <div class="info-value">Tirupur, Tamil Nadu, IN</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Status</div>
+            <div class="info-value" style="color: var(--teal);">Open to Opportunities</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Education</div>
+            <div class="info-value">B.Tech AI & DS — 2027</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Languages</div>
+            <div class="info-value">English · Tamil</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fade-in">
+        <div class="status-panel">
+          <div class="status-title">Capability Matrix</div>
+
+          <div class="skill-bar-row">
+            <div class="skill-bar-header">
+              <span class="skill-bar-label">Machine Learning & Deep Learning</span>
+              <span class="skill-bar-pct">88%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="88"></div></div>
+          </div>
+
+          <div class="skill-bar-row">
+            <div class="skill-bar-header">
+              <span class="skill-bar-label">Cybersecurity & Malware Analysis</span>
+              <span class="skill-bar-pct">82%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill danger" data-width="82"></div></div>
+          </div>
+
+          <div class="skill-bar-row">
+            <div class="skill-bar-header">
+              <span class="skill-bar-label">Python & Data Engineering</span>
+              <span class="skill-bar-pct">90%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill" data-width="90"></div></div>
+          </div>
+
+          <div class="skill-bar-row">
+            <div class="skill-bar-header">
+              <span class="skill-bar-label">Reinforcement Learning</span>
+              <span class="skill-bar-pct">75%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill alt" data-width="75"></div></div>
+          </div>
+
+          <div class="skill-bar-row">
+            <div class="skill-bar-header">
+              <span class="skill-bar-label">Cloud & DevOps (AWS, Docker)</span>
+              <span class="skill-bar-pct">72%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill warn" data-width="72"></div></div>
+          </div>
+
+          <div class="skill-bar-row" style="margin-bottom: 0;">
+            <div class="skill-bar-header">
+              <span class="skill-bar-label">Full-Stack (FastAPI, React)</span>
+              <span class="skill-bar-pct">78%</span>
+            </div>
+            <div class="skill-bar-track"><div class="skill-bar-fill alt" data-width="78"></div></div>
+          </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="terminal" style="margin-top: 20px;">
+          <div class="terminal-bar">
+            <div class="t-dot r"></div>
+            <div class="t-dot y"></div>
+            <div class="t-dot g"></div>
+            <div class="terminal-title">vikashni@ai-lab:~</div>
+          </div>
+          <div class="terminal-body" id="terminal-output">
+            <div><span class="prompt">→ </span><span class="cmd">whoami</span></div>
+            <div><span class="out">vikashni_m :: AI/ML Developer + Cybersecurity Analyst</span></div>
+            <div><span class="prompt">→ </span><span class="cmd" id="terminal-cmd"></span><span class="cursor-blink"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- RESUME -->
+<section id="resume">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-tag">Dossier</div>
+      <h2 class="section-title">Resume</h2>
+    </div>
+    <div class="resume-content">
+      <div class="resume-summary fade-in">
+        <div class="resume-summary-label">Professional Summary</div>
+        <p>Artificial Intelligence and Data Science student with a strong foundation in machine learning algorithms and hands-on experience building production-grade intelligent systems. Experienced in developing reinforcement learning environments and hybrid malware analysis tools, aspiring to grow into roles that combine secure software architecture with real-world automation.</p>
+      </div>
+
+      <div class="edu-card fade-in">
+        <div class="info-label" style="margin-bottom: 12px;">Education</div>
+        <div class="edu-degree">Bachelor of Technology</div>
+        <div class="edu-degree" style="font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">Artificial Intelligence & Data Science</div>
+        <div class="edu-institution">Kathir College of Engineering, Coimbatore</div>
+        <div class="edu-period" style="margin-top: 12px;">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1"/><path d="M6 3v3l2 2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+          2023 – 2027
+        </div>
+      </div>
+
+      <div class="resume-download-section fade-in">
+        <div class="download-text">
+          <div class="download-title">Full Resume / CV</div>
+          <div class="download-sub">PDF · Updated 2025 · AI & Cybersecurity Build Highlights</div>
+        </div>
+        <a href="mailto:vikashnimanoj@gmail.com?subject=Resume Request" class="btn-primary">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M6 8L3 5M6 8L9 5M1 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Request Resume
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-tag">Capability Clusters</div>
+      <h2 class="section-title">Technical Skills</h2>
+    </div>
+    <div class="skills-clusters">
+
+      <div class="skill-cluster fade-in">
+        <div class="cluster-icon">🧠</div>
+        <div class="cluster-title">AI & Machine Learning</div>
+        <div class="cluster-tags">
+          <span class="tag teal">TensorFlow</span>
+          <span class="tag teal">Scikit-learn</span>
+          <span class="tag teal">CNN</span>
+          <span class="tag teal">LSTM</span>
+          <span class="tag teal">NLP</span>
+          <span class="tag teal">Reinforcement Learning</span>
+          <span class="tag teal">OpenEnv</span>
+        </div>
+      </div>
+
+      <div class="skill-cluster fade-in">
+        <div class="cluster-icon">🔐</div>
+        <div class="cluster-title">Cybersecurity</div>
+        <div class="cluster-tags">
+          <span class="tag red">Malware Analysis</span>
+          <span class="tag red">YARA Rules</span>
+          <span class="tag red">Penetration Testing</span>
+          <span class="tag red">SIEM</span>
+          <span class="tag red">Wireshark</span>
+          <span class="tag red">Binary Analysis</span>
+          <span class="tag red">Vulnerability Assessment</span>
+        </div>
+      </div>
+
+      <div class="skill-cluster fade-in">
+        <div class="cluster-icon">⚙️</div>
+        <div class="cluster-title">Programming</div>
+        <div class="cluster-tags">
+          <span class="tag teal">Python</span>
+          <span class="tag teal">JavaScript</span>
+          <span class="tag teal">HTML/CSS</span>
+          <span class="tag">Bash</span>
+        </div>
+      </div>
+
+      <div class="skill-cluster fade-in">
+        <div class="cluster-icon">🌐</div>
+        <div class="cluster-title">Web & APIs</div>
+        <div class="cluster-tags">
+          <span class="tag purple">React</span>
+          <span class="tag purple">FastAPI</span>
+          <span class="tag purple">REST APIs</span>
+          <span class="tag purple">SPA</span>
+        </div>
+      </div>
+
+      <div class="skill-cluster fade-in">
+        <div class="cluster-icon">☁️</div>
+        <div class="cluster-title">Cloud & DevOps</div>
+        <div class="cluster-tags">
+          <span class="tag gold">AWS</span>
+          <span class="tag gold">Docker</span>
+          <span class="tag gold">Git</span>
+          <span class="tag gold">Amazon Redshift</span>
+        </div>
+      </div>
+
+      <div class="skill-cluster fade-in">
+        <div class="cluster-icon">🗄️</div>
+        <div class="cluster-title">Data & Visualization</div>
+        <div class="cluster-tags">
+          <span class="tag">MySQL</span>
+          <span class="tag">PostgreSQL</span>
+          <span class="tag">Power BI</span>
+          <span class="tag teal">Data Preprocessing</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-tag">Case Files</div>
+      <h2 class="section-title">Projects</h2>
+    </div>
+    <div class="projects-grid">
+
+      <!-- Project 1 -->
+      <div class="project-card fade-in">
+        <div class="project-case-id">
+          CASE_FILE :: 001
+          <span class="case-badge rl">RL · AI</span>
+        </div>
+        <div class="project-title">LLM Quality Evaluator Environment</div>
+        <div class="project-subtitle">Reinforcement Learning · LLM Benchmarking · Production Pipeline</div>
+
+        <div class="project-section">
+          <div class="project-section-label">Problem</div>
+          <div class="project-section-text">No standardized RL-based environment existed for evaluating LLM response quality across dimensions like code accuracy, factual correctness, and security compliance.</div>
+        </div>
+
+        <div class="project-section">
+          <div class="project-section-label">Build Approach</div>
+          <div class="project-section-text">Built an OpenEnv-compatible RL environment with a discrete action space and composite reward signals measuring accuracy, efficiency, and security. Containerized the pipeline with Docker and exposed evaluation APIs via FastAPI.</div>
+        </div>
+
+        <div class="project-section">
+          <div class="project-section-label">Outcome</div>
+          <div class="project-section-text">Reproducible, scalable LLM benchmarking pipeline. Presented at Meta × Scaler OpenEnv Hackathon.</div>
+        </div>
+
+        <div class="project-tech">
+          <span class="tag teal">Python</span>
+          <span class="tag teal">Reinforcement Learning</span>
+          <span class="tag gold">FastAPI</span>
+          <span class="tag gold">Docker</span>
+          <span class="tag">OpenEnv</span>
+        </div>
+        <a href="https://github.com/vikashni28/llm-quality-env-" target="_blank" class="project-link">
+          View on GitHub →
+        </a>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="project-card fade-in">
+        <div class="project-case-id">
+          CASE_FILE :: 002
+          <span class="case-badge sec">SECURITY · ML</span>
+        </div>
+        <div class="project-title">RX-MORTEM</div>
+        <div class="project-subtitle">Hybrid Static Malware Analyzer — PE & ELF Executables</div>
+
+        <div class="project-section">
+          <div class="project-section-label">Problem</div>
+          <div class="project-section-text">Static analysis tools lacked ML-enhanced composite threat scoring for both Windows PE and Linux ELF binaries, making cross-platform threat detection fragmented.</div>
+        </div>
+
+        <div class="project-section">
+          <div class="project-section-label">Build Approach</div>
+          <div class="project-section-text">Implemented YARA-based ransomware and process injection detection combined with entropy analysis and Random Forest classification. Built a React SPA frontend backed by FastAPI REST APIs for real-time malware prediction and threat scoring.</div>
+        </div>
+
+        <div class="project-section">
+          <div class="project-section-label">Outcome</div>
+          <div class="project-section-text">Hybrid system detecting PE/ELF threats with ML-validated YARA rules and a full-stack analysis interface.</div>
+        </div>
+
+        <div class="project-tech">
+          <span class="tag red">YARA</span>
+          <span class="tag teal">Python</span>
+          <span class="tag teal">Scikit-learn</span>
+          <span class="tag gold">FastAPI</span>
+          <span class="tag purple">React</span>
+          <span class="tag">Random Forest</span>
+        </div>
+        <a href="https://github.com/vikashni28/rx-mortem" target="_blank" class="project-link">
+          View on GitHub →
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-tag">Operational History</div>
+      <h2 class="section-title">Experience</h2>
+    </div>
+    <div class="timeline fade-in">
+
+      <div class="timeline-item">
+        <div class="timeline-date">May 2025 – Aug 2025</div>
+        <div class="timeline-company">Codec Technologies</div>
+        <div class="timeline-role">
+          AI & Cybersecurity Training Intern
+          <span class="timeline-location">Hybrid</span>
+        </div>
+        <ul class="timeline-bullets">
+          <li>Engineered end-to-end Machine Learning pipelines using Python and TensorFlow, optimizing data preprocessing to reduce training time by 20%.</li>
+          <li>Executed simulated vulnerability assessments and penetration tests, identifying and mitigating 10+ potential security threats in a controlled environment.</li>
+          <li>Implemented custom YARA rules for malware detection and conducted static binary analysis to identify ransomware techniques.</li>
+        </ul>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-date">Mar 2025 – Apr 2025</div>
+        <div class="timeline-company">Amyop Technologies</div>
+        <div class="timeline-role">
+          Campus Ambassador
+          <span class="timeline-location">Coimbatore, TN</span>
+        </div>
+        <ul class="timeline-bullets">
+          <li>Orchestrated 3+ on-campus workshops and networking sessions, leading to a 20% increase in student participation and brand engagement.</li>
+          <li>Spearheaded digital outreach and event marketing via social media platforms, increasing brand visibility for 100+ unique students.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ACHIEVEMENTS -->
+<section id="achievements">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-tag">Verified Signals</div>
+      <h2 class="section-title">Achievements & Certifications</h2>
+    </div>
+
+    <div class="ach-tabs fade-in">
+      <button class="ach-tab active" onclick="switchTab(this, 'ach-wins')">Competition Wins</button>
+      <button class="ach-tab" onclick="switchTab(this, 'ach-cert')">Certifications</button>
+      <button class="ach-tab" onclick="switchTab(this, 'ach-part')">Participations</button>
+    </div>
+
+    <!-- WINS -->
+    <div class="ach-panel active" id="ach-wins">
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🏆</div>
+        <div>
+          <div class="ach-label">Finalist · Apr 2026</div>
+          <div class="ach-title">AI Tool Development Challenge 2.0</div>
+          <div class="ach-desc">Developed "PolicyLens AI" — an open-source civic-tech tool for AI-driven bias detection in government policies, recognized for innovation aligned with SDG 16.</div>
+          <span class="ach-badge">Finalist</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🎯</div>
+        <div>
+          <div class="ach-label">Shortlisted · 2026</div>
+          <div class="ach-title">AWS Campus Hackathon — IIT Kanpur (Techkriti'26)</div>
+          <div class="ach-desc">Shortlisted among the Top 20 teams for developing an AWS-based solution at Techkriti'26, IIT Kanpur.</div>
+          <span class="ach-badge">Top 20</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">📊</div>
+        <div>
+          <div class="ach-label">Ranked · Kaggle</div>
+          <div class="ach-title">Vista – Codefest'26 Computer Vision Hackathon</div>
+          <div class="ach-desc">Ranked in the Top 30 on the leaderboard in a Computer Vision hackathon conducted by Kaggle and IIT (BHU) Varanasi.</div>
+          <span class="ach-badge">Top 30</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🤖</div>
+        <div>
+          <div class="ach-label">Ranked · Kaggle</div>
+          <div class="ach-title">Enigma – Codefest Kaggle Competition</div>
+          <div class="ach-desc">Ranked in the Top 30 in a Machine Learning and algorithmic problem-solving competition focused on advanced ML techniques.</div>
+          <span class="ach-badge">Top 30</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CERTIFICATIONS -->
+    <div class="ach-panel" id="ach-cert">
+      <div class="ach-card fade-in">
+        <div class="ach-icon">☁️</div>
+        <div>
+          <div class="ach-label">NASSCOM · SmartBridge</div>
+          <div class="ach-title">AWS Cloud Computing Virtual Internship</div>
+          <div class="ach-desc">One-month virtual internship covering AWS services, cloud computing fundamentals, and deployment concepts via NASSCOM FutureSkills Prime.</div>
+          <span class="ach-badge">Completed</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🗄️</div>
+        <div>
+          <div class="ach-label">AWS</div>
+          <div class="ach-title">Amazon Redshift Getting Started</div>
+          <div class="ach-desc">Foundational training in Amazon Redshift, cloud databases, and data warehousing concepts.</div>
+          <span class="ach-badge">Certified</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🧬</div>
+        <div>
+          <div class="ach-label">AWS SimuLearn</div>
+          <div class="ach-title">Generative AI Practitioner</div>
+          <div class="ach-desc">Hands-on training in Generative AI concepts, prompt engineering, AI-powered applications, and practical AI workflows using AWS technologies.</div>
+          <span class="ach-badge">Completed</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🎓</div>
+        <div>
+          <div class="ach-label">Codec Technologies · ICAC</div>
+          <div class="ach-title">Artificial Intelligence Training Certificate</div>
+          <div class="ach-desc">ICAC-recognized Certificate of Completion in Artificial Intelligence (Aug 2025). Developed practical AI skills for real-world problem-solving.</div>
+          <span class="ach-badge">ICAC Verified</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🌏</div>
+        <div>
+          <div class="ach-label">Google Cloud · Hack2Skill</div>
+          <div class="ach-title">Gen AI Academy (APAC Edition)</div>
+          <div class="ach-desc">Training focused on production-grade Generative AI application development and modern AI workflows.</div>
+          <span class="ach-badge">Completed</span>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🔒</div>
+        <div>
+          <div class="ach-label">TryHackMe</div>
+          <div class="ach-title">Cybersecurity Labs</div>
+          <div class="ach-desc">Completed hands-on labs in Offensive Security, Defensive Security, Malware Analysis, Vulnerability Assessment, and the "Pickle Rick" CTF challenge.</div>
+          <span class="ach-badge">Practical</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTICIPATIONS -->
+    <div class="ach-panel" id="ach-part">
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🤖</div>
+        <div>
+          <div class="ach-label">Meta × Scaler</div>
+          <div class="ach-title">OpenEnv Hackathon</div>
+          <div class="ach-desc">Participated in one of India's largest AI hackathons. Developed an RL-based LLM evaluation environment for analyzing AI-generated responses.</div>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🎓</div>
+        <div>
+          <div class="ach-label">IIT Madras</div>
+          <div class="ach-title">Project Horizon – GPAi Case Competition</div>
+          <div class="ach-desc">National-level case competition focused on Artificial Intelligence applications in Education.</div>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">💻</div>
+        <div>
+          <div class="ach-label">IIT (BHU) Varanasi · CodeFest'26</div>
+          <div class="ach-title">Haxplore Segment</div>
+          <div class="ach-desc">Participated in the Haxplore segment involving technical and innovation-based challenges.</div>
+        </div>
+      </div>
+
+      <div class="ach-card fade-in">
+        <div class="ach-icon">🏛️</div>
+        <div>
+          <div class="ach-label">Tata Group</div>
+          <div class="ach-title">TATA Crucible Campus Quiz 2025</div>
+          <div class="ach-desc">National-level business and knowledge quiz competition organized by the Tata Group.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="section-header fade-in">
+      <div class="section-tag">Establish Connection</div>
+      <h2 class="section-title">Contact</h2>
+    </div>
+    <div class="contact-grid">
+      <div class="fade-in">
+        <p class="contact-intro">
+          Open to internships, research collaborations, and project partnerships in AI/ML and cybersecurity. If you're building something intelligent or securing something critical — let's talk.
+        </p>
+        <div class="contact-items">
+          <a href="mailto:vikashnimanoj@gmail.com" class="contact-item">
+            <div class="contact-item-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00e5cc" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 6 10-6"/></svg>
+            </div>
+            <div class="contact-item-info">
+              <div class="contact-item-label">Email</div>
+              <div class="contact-item-value">vikashnimanoj@gmail.com</div>
+            </div>
+          </a>
+          <a href="https://www.linkedin.com/in/vikashni-m-695a0a295/" target="_blank" class="contact-item">
+            <div class="contact-item-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#00e5cc"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
+            </div>
+            <div class="contact-item-info">
+              <div class="contact-item-label">LinkedIn</div>
+              <div class="contact-item-value">linkedin.com/in/vikashni-m-695a0a295</div>
+            </div>
+          </a>
+          <a href="https://github.com/vikashni28" target="_blank" class="contact-item">
+            <div class="contact-item-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#00e5cc"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            </div>
+            <div class="contact-item-info">
+              <div class="contact-item-label">GitHub</div>
+              <div class="contact-item-value">github.com/vikashni28</div>
+            </div>
+          </a>
+          <div class="contact-item" style="cursor: default;">
+            <div class="contact-item-icon" style="background: rgba(255,59,92,0.08); border-color: rgba(255,59,92,0.2);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff3b5c" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            </div>
+            <div class="contact-item-info">
+              <div class="contact-item-label">Location</div>
+              <div class="contact-item-value">Tirupur, Tamil Nadu, India</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-map fade-in">
+        <div class="map-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          NODE LOCATION :: TIRUPUR, IN
+        </div>
+        <div class="map-placeholder">
+          <!-- Mini map-like SVG -->
+          <svg width="100%" height="160" viewBox="0 0 280 160" style="opacity:0.4">
+            <rect width="280" height="160" fill="none"/>
+            <!-- Grid -->
+            <g stroke="#00e5cc" stroke-width="0.3" opacity="0.3">
+              <line x1="0" y1="40" x2="280" y2="40"/>
+              <line x1="0" y1="80" x2="280" y2="80"/>
+              <line x1="0" y1="120" x2="280" y2="120"/>
+              <line x1="70" y1="0" x2="70" y2="160"/>
+              <line x1="140" y1="0" x2="140" y2="160"/>
+              <line x1="210" y1="0" x2="210" y2="160"/>
+            </g>
+            <!-- Map blob shapes -->
+            <path d="M60 30 Q90 20 120 35 Q150 48 130 70 Q110 90 80 85 Q50 78 45 58 Q40 38 60 30Z" fill="#00e5cc" opacity="0.05" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.2"/>
+            <path d="M140 55 Q170 45 200 60 Q225 75 215 100 Q200 120 175 115 Q148 108 140 88 Q132 68 140 55Z" fill="#00e5cc" opacity="0.05" stroke="#00e5cc" stroke-width="0.5" stroke-opacity="0.2"/>
+          </svg>
+          <div class="map-dot"></div>
+          <div class="map-label">Tirupur, Tamil Nadu</div>
+          <div class="map-coords">11.1085° N, 77.3411° E</div>
+        </div>
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+          <div class="info-label" style="margin-bottom: 8px;">Availability</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="tag teal">Open to Internships</span>
+            <span class="tag teal">Remote Ready</span>
+            <span class="tag">Collaborations</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner">
+    <div class="ticker-text">⚡ <span>VIKASHNI M</span> — AI/ML Developer · <span>Cybersecurity Analyst</span> · B.Tech AI & DS · <span>Open for Collaboration</span> · Tirupur, IN · <span>Building Intelligence, Securing Systems</span> ⚡ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+    <div class="ticker-text">⚡ <span>VIKASHNI M</span> — AI/ML Developer · <span>Cybersecurity Analyst</span> · B.Tech AI & DS · <span>Open for Collaboration</span> · Tirupur, IN · <span>Building Intelligence, Securing Systems</span> ⚡ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-text">
+    <span>VIKASHNI M</span> · AI Security Lab Portfolio · Built with intent, not templates · Tirupur, TN — 2025
+  </div>
+</footer>
+
+<script>
+// ====== NEURAL CANVAS ======
+const canvas = document.getElementById('neural-canvas');
+const ctx = canvas.getContext('2d');
+let nodes = [];
+let mouseX = -1000, mouseY = -1000;
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function initNodes() {
+  nodes = [];
+  const count = Math.min(Math.floor((W * H) / 18000), 80);
+  for (let i = 0; i < count; i++) {
+    nodes.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r: Math.random() * 1.5 + 0.8,
+    });
+  }
+}
+
+function drawNeural() {
+  ctx.clearRect(0, 0, W, H);
+
+  const DIST = 120;
+  const MOUSE_DIST = 150;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    n.x += n.vx;
+    n.y += n.vy;
+    if (n.x < 0 || n.x > W) n.vx *= -1;
+    if (n.y < 0 || n.y > H) n.vy *= -1;
+
+    const dm = Math.hypot(n.x - mouseX, n.y - mouseY);
+    const glow = dm < MOUSE_DIST ? (1 - dm / MOUSE_DIST) : 0;
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r + glow * 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(0,229,204,${0.3 + glow * 0.7})`;
+    ctx.fill();
+
+    for (let j = i + 1; j < nodes.length; j++) {
+      const m = nodes[j];
+      const d = Math.hypot(n.x - m.x, n.y - m.y);
+      if (d < DIST) {
+        const alpha = (1 - d / DIST) * 0.15;
+        ctx.beginPath();
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(m.x, m.y);
+        ctx.strokeStyle = `rgba(0,229,204,${alpha})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(drawNeural);
+}
+
+window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+window.addEventListener('resize', () => { resize(); initNodes(); });
+resize();
+initNodes();
+drawNeural();
+
+// ====== SKILL BARS INTERSECTION ======
+const skillObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.skill-bar-fill').forEach(bar => {
+        const w = bar.getAttribute('data-width');
+        if (w) setTimeout(() => { bar.style.width = w + '%'; }, 200);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('#about').forEach(el => skillObserver.observe(el));
+
+// ====== FADE IN OBSERVER ======
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
+// ====== TERMINAL TYPEWRITER ======
+const commands = [
+  '> Scanning threat vectors...',
+  '> Deploying ML pipeline...',
+  '> Analyzing ELF binaries...',
+  '> Running YARA ruleset...',
+  '> Training CNN model...',
+  '> Evaluating LLM quality...',
+  '> Establishing SSH tunnel...',
+  '> Compiling RL environment...',
+];
+
+let cmdIdx = 0;
+let charIdx = 0;
+const cmdEl = document.getElementById('terminal-cmd');
+
+function typeCommand() {
+  const cmd = commands[cmdIdx];
+  if (charIdx < cmd.length) {
+    cmdEl.textContent = cmd.slice(0, charIdx + 1);
+    charIdx++;
+    setTimeout(typeCommand, 30 + Math.random() * 40);
+  } else {
+    setTimeout(() => {
+      cmdIdx = (cmdIdx + 1) % commands.length;
+      charIdx = 0;
+      typeCommand();
+    }, 1600);
+  }
+}
+
+setTimeout(typeCommand, 1200);
+
+// ====== ACHIEVEMENT TABS ======
+function switchTab(btn, panelId) {
+  document.querySelectorAll('.ach-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ach-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ====== SMOOTH NAV ACTIVE STATE ======
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+
+const navObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => {
+        link.style.color = '';
+        link.style.background = '';
+        if (link.getAttribute('href') === '#' + entry.target.id) {
+          link.style.color = 'var(--teal)';
+          link.style.background = 'var(--teal-glow)';
+        }
+      });
+    }
+  });
+}, { threshold: 0.4 });
+
+sections.forEach(s => navObserver.observe(s));
+
+// ====== CLOSE NAV ON LINK CLICK (MOBILE) ======
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    document.getElementById('nav-menu').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
